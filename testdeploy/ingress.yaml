@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    codefresh.io.refresh: "23"
+  creationTimestamp: 2018-08-09T16:49:26Z
+  generation: 1
+  labels:
+    heritage: Tiller
+    release: kubeintegration
+  name: kubetest
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: kubetest
+          servicePort: 1111
+        path: /kube/
+  tls:
+  - secretName: kubeintegration-codefresh-star-selfsigned

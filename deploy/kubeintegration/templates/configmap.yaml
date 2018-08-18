@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  config: |
+    cache:
+       ttl : "10"
+       checkloop : "10"
+kind: ConfigMap
+metadata:
+  name: config

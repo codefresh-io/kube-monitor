@@ -1,0 +1,36 @@
+{
+  "version": "1.3.5",
+  "name": "@codefresh-io/kube-integration",
+  "main": "index.js",
+  "description": "",
+  "scripts": {
+    "test:unit": "find . -not -path './node_modules/*' -path '*/*.unit.spec.js' | NODE_ENV=test xargs mocha",
+    "test:e2e": "find . -not -path './node_modules/*' -path '*/*.e2e.spec.js' | NODE_ENV=test xargs mocha",
+    "start": "node server.js",
+    "ci-publish": "ci-publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codefresh-io/kube-integration.git"
+  },
+  "author": "Oleg Sucharevich <olegs@codefresh.io>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codefresh-io/kube-integration/issues"
+  },
+  "homepage": "https://github.com/codefresh-io/kube-integration#readme",
+  "dependencies": {
+    "assert": "^1.4.1",
+    "bluebird": "^3.5.1",
+    "chalk": "^2.4.1",
+    "cli-table": "^0.3.1",
+    "express": "^4.16.3",
+    "kefir": "^3.8.3",
+    "kubernetes-client": "^5.3.1",
+    "lodash": "^4.17.10",
+    "morgan": "^1.9.0",
+    "mustache": "^2.3.1",
+    "node-cache": "^4.2.0",
+    "prettyjson": "^1.2.1"
+  }
+}
