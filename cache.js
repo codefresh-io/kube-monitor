@@ -27,15 +27,15 @@ myCache.on( "set", (key) => {
     console.log(` ${new Date()} key ${key} has set`);
 });
 
-const getEntities = ({ cluster = 'local', labelSelector, kinds = ['service',
+const getEntities = ({ clusterInfo = 'local', namespace, labelSelector, kinds = ['service',
     'pod', 'deployment'] }) => {
-    const cacheKey = `${cluster}_${JSON.stringify(labelSelector)}`;
-    console.log(`chacheKey = ${cacheKey}`);
+    const cacheKey = `${namespace + "_" + clusterInfo.name + "_" +  labelSelector}`;
+    console.log(`cache key =  ${cacheKey}`);
     return getFromCache(cacheKey)
     .then((k) => {
         if (_.isUndefined(k)) {
             console.log(`${new Date()} -no cache for key ${cacheKey} wtih a result ${k}`);
-            return getEntityByLabel({ labelSelector,
+            return getEntityByLabel({ clusterInfo,  labelSelector,
                 kinds })
            .then((entities) => {
                console.log(`setting cache for key ${cacheKey}`);
