@@ -9,6 +9,7 @@ let EntityManager;
 app.use(morgan());
 app.get('/', (req, res) => res.send(200));
 app.get('/kube', (req, res) => res.send(200));
+ 
 app.get('/kube/clusters/:clusters/entities', (req, res) => {
     console.log('app.get /k8s/clusters/:clusters/entities: ${req.')
   
@@ -37,6 +38,7 @@ app.get('/kube/clusters/:clusters/entities', (req, res) => {
     : EntityManager
         .getEntityByLabel({ clusters, labelSelector, namespace, kinds })
         .then(printEntities)
+        .then(_.noop)// TODO: add cache update
         .then(res.send.bind(res));
 });
 const printEntities = (entities)=>{
@@ -51,19 +53,8 @@ const printEntities = (entities)=>{
 }
 app.listen(8888, (err) => {
     
-    console.log('connected');
+    console.log('server connected');
 });
 
-const client = require('./config').init().then((client)=>{
-     EntityManager = require('./visitors/recursive');
-     EntityManager.getEntityByLabel({ labelSelector:"app=demo",
-      kinds : ["pod", "deploy", "service"] })
-        .then(()=>{
-         console.log('was able to connect to K8s')
-        });
-}, ()=>{
 
-}).catch((e)=>{
-   // EntityManager = require('./visitors/recursive');
-})
 

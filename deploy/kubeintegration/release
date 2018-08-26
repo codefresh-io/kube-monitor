@@ -1,0 +1,55 @@
+
+
+Dev 
+   
+   Env : 
+    - config 
+    - secrets
+    - chart
+
+   OpsStaging ------[Config , Secrets , Deployment]--------
+   OpsProd --- 
+   OpsDev ---
+   Release -----
+   Master -----
+   Feature
+
+
+   App:
+    - S1
+    - S2
+
+    App
+    AppInfra  
+    Infra=====
+    - [S1, S3, S3]
+
+
+    workflow : 
+    gitclone  = > [
+    [[dockerbuild(./Docker1)],
+     dockerbuild(./Docker2)
+    ]= > [unittest1 , untest2] => chart 
+
+    dockerbuild(./Docker1)
+    dockerbuild, dockerbuild, [S3=>S5=>S7]]=>
+
+    steps: 
+      gitclone 
+      build1: 
+         depends_on (gitclone)
+      build2 : 
+         depends_on (gitlcone)
+      unittest1 
+        depends_on (build1)
+      unittest2:
+        depends_on (buidl2)
+      deploy :
+        depends_on (build1, build2)
+      run_integration(depeloy)
+      deploy2k8s
+
+    Release 
+      Images [S1 , S2 , S3] - immutable 
+      Config [C1, C2 , C3]
+      SecretsMetadata[]

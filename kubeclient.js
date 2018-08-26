@@ -2,25 +2,26 @@ const Client = require('kubernetes-client').Client;
 const config = require('kubernetes-client').config;
 
 let Auth = {client: undefined}
- 
+debugger;
 module.exports.Auth  = Auth;
-module.exports.Client = async (options)=>{
-  return init();
+module.exports.Client = async (clusterInfo)=>{
+  return getClient(clusterInfo);
 }
-module.exports.init = init;
-async function init() {
+module.exports.getClient = getClient;
+async function getClient(clusterInfo) {
     console.log('running init process');
     try {
       let  client;
       if (process.env.LOCAL){
-      client = new Client({ config: config.fromKubeconfig(), version: '1.9' });
+      client = new Client({ config: config.fromKubeconfig()
+        , version: '1.9' });
       console.log('from kubeconfig');  
       Auth.client = client;
  
       return client;
     }
       else {
-       client = new Client({ config: config.getInCluster() });
+       client = new Client({ config: clusterInfo || config.getInCluster() });
        await client.loadSpec();  
        Auth.client = client;
     }

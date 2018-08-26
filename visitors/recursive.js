@@ -7,13 +7,12 @@ const debug = require('debug')('recursive')
 const Status = require('./status');
 const kefir = require('kefir');
 
-const KubeModel = {
-  service: ["deployments"],
-  deployment:["replicas", "pods"]
-}
+ debugger;
 
-const  getKubeClient = async ()=>{
-  let client = await require('../config').Client();
+ 
+
+const  getKubeClient = async (clusterInfo)=>{
+  let client = await require('../kubeclient').Client(clusterInfo);
 
   assert(client, "client assertion");
   assert(client.apis, "client.api");
@@ -21,8 +20,9 @@ const  getKubeClient = async ()=>{
   return client;
 }
 
-getServices = async ({name , namespace='default', labelSelector, isRecursive})=>{
-  let client = await getKubeClient();
+getServices = async ({clusterInfo , name , namespace='default', labelSelector, isRecursive})=>{
+  try{
+  let client = await getKubeClient(clusterInfo);
 
   let serviceRequest  = await client.apis.v1
   .namespaces(namespace)
@@ -32,13 +32,17 @@ getServices = async ({name , namespace='default', labelSelector, isRecursive})=>
   let services = (_.get(serviceRequest, "body",
    _.get(serviceRequest, "body")))
 
+  return services;
 
-
-
-   return services;
+  }catch(e){
+    console.log(`exception ${e}`)
+    throw e;
+  }
 }
-getDeployments = async({namespace, name, labelSelector})=>{
-  let client = await getKubeClient();
+getDeployments = async({clusterInfo, namespace="default", name, labelSelector})=>{
+  try{
+
+  let client = await getKubeClient(clusterInfo);
 
   debug(chalk.green(`looking for pods with ${JSON.stringify(labelSelector)}`));
   let deploymentRequest =  await client.apis.apps.v1
@@ -50,10 +54,16 @@ getDeployments = async({namespace, name, labelSelector})=>{
   assert(deploymentRequest);
   let deployments = _.get(deploymentRequest, "body", {});
   return deployments;
-}
-getPods = async({namespace="",name, labelSelector})=>{
-   let client = await getKubeClient();
 
+  }catch(e){
+    throw e;
+  }
+}
+getPods = async({clusterInfo ,namespace="default",name, labelSelector})=>{
+   
+  try {
+
+    let client = await getKubeClient(clusterInfo);
     debug(chalk.green(`looking for pods with ${JSON.stringify(labelSelector)}`));
     let podsRequest =  await client.apis.v1
     .namespaces(namespace)
@@ -66,6 +76,9 @@ getPods = async({namespace="",name, labelSelector})=>{
     console.log(JSON.stringify(pods));
 
     return pods;
+  }catch (e){
+    throw e;
+  }
 }
 getNamespaces = async ({name, labelSelector})=>{
   const namespaceRequest = await client.apis.v1
@@ -94,38 +107,38 @@ cachedGetServices = _.memoize(getServices, (a,b)=>{
   debug(`a=${JSON.stringify(a.selector.namespace)}`)
   return a.selector.namespace;
 })
-cachedGetServices({selector:{"namespace":"default"}})
-p = new Promise((resolve, reject)=>{
-  setTimeout(resolve, 5000)
-})
-p.then((a)=>{
-  cachedGetServices({selector:{"namespace":"default"}})
-})
-cachedGetServices({selector:{"namespace":"default"}})
 
 const nolabel = {"label": "doesnotexist"}
 
 let getServicesAwait = _.partial(getServices,
    {selector:{"namespace":"default"}});
 
-const getServiceStream  = ({namespace, labelSelector})=>{
+const getServiceStream  = (options)=>{
   return kefir.fromPromise
-  (getServices({namespace, labelSelector})).spy('services=>')
+  (getServices(options)).spy('services=>')
   .map(utils.flattenEntityList)
   //.flatten()
   .spy('services=>');
 }
-const getDeploymentStream = ({namespace, labelSelector})=>{
-  let deployFunc = _.partial(getDeployments, { namespace, labelSelector });
+const getDeploymentStream = (options)=>{
+  let deployFunc = _.partial(getDeployments, options);
   return  kefir.fromPromise(deployFunc())
   .map(utils.flattenEntityList)
   //.flatten()
   .spy('deployment=>')
 }
-const getPodsStream = ({ labelSelector})=>{
-  let podsFunc = _.partial(getPods, { labelSelector });
+
+const getPodsStream = (options)=>{
+  let podsFunc = _.partial(getPods, options);
   return  kefir.fromPromise(podsFunc())
   .map(utils.flattenEntityList)
+  .map((pod)=>{
+    let images = _.pick(pod, ["status.containerStatuses",
+     "status.containerStatuses"]);
+     console.log(`!!!images ${JSON.stringify(pod)}`);
+
+     return pod;
+  })  
   //.flatten()
   .spy('pods=>')
 }
@@ -137,7 +150,7 @@ const streamFactories = {
    pod : getPodsStream,
    pods : getPodsStream
   }
-const getEntityByLabel = ({namespace , labelSelector , kinds =["pod"] }) => {
+const getEntityByLabel = ({clusterInfo , namespace , labelSelector , kinds =["pod"] }) => {
  
 
 let streams = _.chain(streamFactories).filter((streamFunc , kind)=>{
@@ -145,7 +158,7 @@ let streams = _.chain(streamFactories).filter((streamFunc , kind)=>{
          console.log(JSON.stringify(kind));
          return _.includes(kinds, kind);
       }).values().map((f)=>{
-      return f({namespace , labelSelector});
+      return f({clusterInfo, namespace , labelSelector});
       }).value();
   
 let resultStream = kefir.merge(streams).log('streams')
@@ -163,7 +176,7 @@ let resultStream = kefir.merge(streams).log('streams')
   }, {})
   .last().log('entities=>')
  
-  return resultStream.toPromise();
+  return resultStream.takeErrors(1).toPromise();
 }
 
 
@@ -241,9 +254,7 @@ const getKubeEntities = ({namespace, labelSelector , kinds =["pod"] }) => {
   return resultStream.toPromise();
 }
 
-/*getKubeEntities({}).then((o)=>{
-  console.log(JSON.stringify(o));
-})*/
+ 
 
 module.exports.getPods = getPods;
 module.exports.getKubeEntities = getKubeEntities;
