@@ -1,0 +1,48 @@
+version: '1.0'
+kind: pipeline
+metadata:
+  name: codefresh-io/kube-monitor/deploy
+  isPublic: false
+  labels:
+    tags: []
+  deprecate:
+    applicationPort: '8080'
+    repoPipeline: true
+  originalYamlString: |-
+    version: '1.0'
+    steps:
+      BuildingDockerImage:
+        title: Building Docker Image
+        type: build
+        image_name: codefreshio/kubemonitor1
+        working_directory: ./
+        tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+        dockerfile: ./Dockerfile
+  accountId: 5672d8deb6724b6e359adf62
+  created_at: '2018-08-26T08:02:02.074Z'
+  updated_at: '2018-08-26T08:22:47.399Z'
+  project: codefresh-io/kube-monitor
+  id: 5b825e7aaedcd0d10fccbf1c
+spec:
+  triggers:
+    - type: git
+      repo: codefresh-io/kube-monitor
+      events:
+        - push
+        - pullrequest.closed
+      branchRegex: /staging/gi
+      modifiedFilesGlob: ./deploy
+      provider: github
+  contexts: []
+  variables:
+    - key: PORT
+      value: '8080'
+  steps:
+    BuildingDockerImage:
+      title: Building Docker Image
+      type: build
+      image_name: codefreshio/kubemonitor1
+      working_directory: ./
+      tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+      dockerfile: ./Dockerfile
+
