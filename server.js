@@ -39,7 +39,7 @@ app.get('/kube/clusters/:clusters/entities', (req, res) => {
     : EntityManager
         .getEntityByLabel({ clusters, labelSelector, namespace, kinds })
         .then(printEntities)
-        .then(_.noop)// TODO: add cache update
+        //.then(_.noop)// TODO: add cache update
         .then(res.send.bind(res));
 });
 const printEntities = (entities)=>{
