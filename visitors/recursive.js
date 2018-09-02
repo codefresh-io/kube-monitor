@@ -80,6 +80,48 @@ getPods = async({clusterInfo ,namespace="default",name, labelSelector})=>{
     throw e;
   }
 }
+let imageInfoParser = (podInfo)=>{
+
+  let cStatus = _.get(podInfo, "status.containerStatuses", {});
+  _.forEach(cStatus, (status)=>{
+    const regs = [["azure",/.\.azurecr\.io$/], "dockerhub", "gcr", "ecr"]
+    
+    if (/.\.azurecr\.io$/gi.test(status.image))
+       console.log('azure')
+    if (/^r\.cfcr\.io/gi.test(status.image))
+       console.log(chalk.green('codefresh'))
+   
+  })
+  return kefir.constant(podInfo)  ;
+}
+ /*
+ spec:
+    containers:
+    - image: alpine
+      imagePullPolicy: Always
+      name: test
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-ndjvr
+        readOnly: true
+
+        containerStatuses:
+    - containerID: docker://8ba4095131b63278c974ea87ef774b4c2630d70f368dac1fdc92c614aab13331
+      image: alpine:latest
+      imageID: docker-pullable://alpine@sha256:7043076348bf5040220df6ad703798fd8593a0918d06d3ce30c6c93be117e430
+      lastState:
+        terminated:
+          containerID: docker://8ba4095131b63278c974ea87ef774b4c2630d70f368dac1fdc92c614aab13331
+          exitCode: 0
+          finishedAt: 2018-09-01T09:53:45Z
+          reason: Completed
+ */
+
+
+ 
 getNamespaces = async ({name, labelSelector})=>{
   const namespaceRequest = await client.apis.v1
   .namespaces(name)
@@ -138,8 +180,8 @@ const getPodsStream = (options)=>{
      console.log(`!!!images ${JSON.stringify(pod)}`);
 
      return pod;
-  })  
-  //.flatten()
+  }).flatten().flatMap(imageInfoParser).scan((prev, next)=>{prev.push(next); return prev}, [])
+
   .spy('pods=>')
 }
 const streamFactories = {
