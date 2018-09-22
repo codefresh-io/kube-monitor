@@ -8,11 +8,11 @@ module.exports.Client = async (clusterInfo)=>{
   return getClient(clusterInfo);
 }
 module.exports.getClient = getClient;
-async function getClient(clusterInfo) {
-    console.log('running init process');
+async function getClient( clusterInfo ) {
+    console.log(`running init process ${JSON.stringify(clusterInfo.fromConfig)}`);
     try {
       let  client;
-      if (process.env.LOCAL){
+      if (process.env.LOCAL|| clusterInfo.fromConfig){
       client = new Client({ config: config.fromKubeconfig()
         , version: '1.9' });
       console.log('from kubeconfig');  

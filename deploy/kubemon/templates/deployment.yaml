@@ -13,6 +13,7 @@ spec:
     metadata:
       annotations : 
         codefresh.io.refresh: "{{ .Values.codefresh.refresh}}"
+        codefresh.io.git.sha: "{{ .Values.codefresh.git.sha}}"
       labels:
         app: {{ template "name" . }}
         release: {{ .Release.Name }}

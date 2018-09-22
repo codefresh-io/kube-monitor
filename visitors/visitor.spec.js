@@ -13,7 +13,8 @@ describe('visitors test', async () => {
  
 
         clusterInfo = JSON.parse(fs.readFileSync(__dirname + "/"  +  path), "");
-        let cert = await _.chain(clusterInfo).omit(["url", "insecureSkipTlsVerify"])
+        let cert = await _.chain(clusterInfo)
+        .omit(["url", "insecureSkipTlsVerify"])
         .mapValues((v)=>{
             return Buffer.from(v, "base64");
         }).value();
@@ -34,11 +35,12 @@ describe('visitors test', async () => {
         const getEntityByLabel = recursive.getEntityByLabel;
         const printEntities = utils.printEntities;
         const cachedEntities = async (options)=>{
-            await Cache.getEntities(options)
+            return await Cache.getEntities(options)
          }
 
        try{
         clusterInfo = await loadClusterInfo("../util/certAzure");
+        clusterInfo.fromConfig = true;
         getEnityByLabelWithTime = timely.promise(getEntityByLabel);
         getCachedEntitiesByTime1  = timely.promise(cachedEntities);
         getCachedEntitiesByTime2  = timely.promise(cachedEntities);
@@ -47,23 +49,24 @@ describe('visitors test', async () => {
 
         ///console.log(chalk.red(getEnityByLabelWithTime.time/1000));
         console.log('call no cache')
-        result = await getCachedEntitiesByTime1({clusterInfo,  labelSelector: 'run=node', kinds:["service",
-        "pod", "deployment"] }) 
+        result = await getCachedEntitiesByTime1({ clusterInfo,  labelSelector: 'run=testcfcr', kinds:["pod"] }) 
 
         console.log(chalk.red(getCachedEntitiesByTime1.time/1000));
 
+        
+
         console.log('call using cache')
-        result = await getCachedEntitiesByTime2({clusterInfo,  labelSelector: 'run=node', kinds:["service",
+       /* result = await getCachedEntitiesByTime2({clusterInfo,  labelSelector: 'run=node', kinds:["service",
         "pod", "deployment"] }) 
 
         console.log(chalk.red(getCachedEntitiesByTime2.time/1000));
-
-       /* _.chain(entities)
+        */
+        _.chain(result)
             .values().forEach((v)=>{
                 let f = printEntities (v)
                 console.log(f);
                 return f;
-             }).forEach(console.log).value();*/
+             }).forEach(console.log).value();
      
     
         }catch(e){
