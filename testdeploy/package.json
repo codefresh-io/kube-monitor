@@ -4,7 +4,7 @@
     "main": "server.js",
     "description": "simple image for pod testing",
     "dependencies": {
-        "express": "^4.16.3",
+        "express": "^4.17.1",
         "morgan": "^1.9.0"
     }
 }
